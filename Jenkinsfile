@@ -8,9 +8,9 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Getting Repo files') {
             steps {
-                checkout scm
+                git branch: "${GIT_BRANCH}", credentialsId: 'github', url: "${REPO_URL}"
             }
         }
 
