@@ -36,7 +36,7 @@ app.post("/submit", async (req, res) => {
             [email, password]
         );
 
-        res.send("تم الاستلام بنجاح prod");
+        res.send("تم الاستلام بنجاح prodd");
     } catch (err) {
         console.error(err);
         res.status(500).send("Database error");
