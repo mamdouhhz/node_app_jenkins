@@ -2,7 +2,7 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 
 const app = express();
-const PORT = process.env.PORT || 6000;
+const PORT = process.env.PORT || 6050;
 
 // Parse form data
 app.use(express.urlencoded({ extended: true }));
