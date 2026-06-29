@@ -3,13 +3,13 @@ pipeline {
 
     environment {
         APP_NAME = 'node_app_jenkins'
-        REPO_URL = "https://github.com/mamdouhhz/node_app_jenkins.git"
     }
 
     stages {
-        stage('Getting Repo files') {
+
+        stage('Checkout') {
             steps {
-                git branch: "${GIT_BRANCH}", credentialsId: 'github', url: "${REPO_URL}"
+                checkout scm
             }
         }
 
@@ -17,7 +17,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker build -t ${APP_NAME}:${BUILD_NUMBER} .
+                        docker build \
+                            -t ${APP_NAME}:${BRANCH_NAME}-${BUILD_NUMBER} .
                     """
                 }
             }
@@ -25,18 +26,27 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'docker',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh """
+                        echo "${DOCKER_PASSWORD}" | docker login \
+                            -u "${DOCKER_USERNAME}" \
+                            --password-stdin
 
-                        sh """
-                            echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+                        docker tag \
+                            ${APP_NAME}:${BRANCH_NAME}-${BUILD_NUMBER} \
+                            ${DOCKER_USERNAME}/${APP_NAME}:${BRANCH_NAME}-${BUILD_NUMBER}
 
-                            docker tag ${APP_NAME}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}
+                        docker push \
+                            ${DOCKER_USERNAME}/${APP_NAME}:${BRANCH_NAME}-${BUILD_NUMBER}
 
-                            docker push ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}
-                        """
-
-                    }
+                        docker logout
+                    """
                 }
             }
         }
@@ -45,11 +55,31 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker run -p 6050:6050 --name "${APP_NAME}"-"main"-${BUILD_NUMBER} -d ${APP_NAME}:${BUILD_NUMBER}
+                        docker rm -f ${APP_NAME}-${BRANCH_NAME} || true
+
+                        docker run -d \
+                            --name ${APP_NAME}-${BRANCH_NAME} \
+                            -p 6050:6050 \
+                            ${DOCKER_USERNAME}/${APP_NAME}:${BRANCH_NAME}-${BUILD_NUMBER}
+
                         docker ps
                     """
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Build completed successfully."
+        }
+
+        failure {
+            echo "Build failed."
+        }
+
+        always {
+            cleanWs()
         }
     }
 }
