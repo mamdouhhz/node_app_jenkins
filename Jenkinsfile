@@ -1,3 +1,4 @@
+@Library('jenkins-shared-lib') _
 pipeline {
     agent any
 
@@ -48,6 +49,14 @@ pipeline {
                         docker run -p 6050:6050 --name "${APP_NAME}"-"main"-${BUILD_NUMBER} -d ${APP_NAME}:${BUILD_NUMBER}
                         docker ps
                     """
+                }
+            }
+        }
+        stages {
+            stage('Send Greeting') {
+                steps {
+                    // Call the shared library function
+                    greet('You are doing great, keep learning!')
                 }
             }
         }
