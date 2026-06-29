@@ -36,7 +36,7 @@ app.post("/submit", async (req, res) => {
             [email, password]
         );
 
-        res.send("Credentials submitted successfullyyyy!!!!!!!!");
+        res.send("Credentials submitted successfully!@!@!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Database error");
