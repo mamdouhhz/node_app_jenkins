@@ -12,12 +12,6 @@ pipeline {
                 git branch: "${GIT_BRANCH}", credentialsId: 'github', url: "${REPO_URL}"
             }
         }
-        
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/mamdouhhz/repository.git'  // Replace with your repository URL
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
